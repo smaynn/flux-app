@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { I18nProviderClient, useI18n, useCurrentLocale } from "../../locales/client";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
@@ -206,11 +207,14 @@ function HomePageContent() {
 
                   {generatedImage && !isGenerating && !error && (
                     <div className="w-full h-full relative group flex items-center justify-center">
-                      <img 
+                      <Image 
                         src={generatedImage} 
-                        alt="AI 生成的图像" 
+                        alt="AI 生成的图像"
+                        width={512}
+                        height={512}
                         className="max-w-full max-h-full object-contain rounded-lg shadow-md transition-opacity duration-300 ease-in-out animate-fadeIn"
-                        onLoad={() => console.log("图像已成功加载到img标签")}
+                        onLoad={() => console.log("图像已成功加载到Image组件")}
+                        unoptimized
                       />
                       <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <a 

@@ -17,21 +17,22 @@ export const metadata: Metadata = {
   description: "基于AI的文字生成图像平台", // 考虑是否也国际化
 };
 
-// 函数参数不使用解构，这样可以先等待整个params
-export default async function RootLayout(props: {
+// Next.js 15 类型定义更新：正确定义 params
+type LayoutProps = {
   children: React.ReactNode;
-  params: { locale: string };
-}) {
-  // 等待整个props.params对象
-  const params = await props.params;
-  const locale = params.locale;
+  params: Promise<{ locale: string }>;
+};
+
+export default async function RootLayout({ children, params }: LayoutProps) {
+  // 正确地等待 params Promise
+  const { locale } = await params;
   
   return (
     <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {props.children}
+        {children}
       </body>
     </html>
   );
