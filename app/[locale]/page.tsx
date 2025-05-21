@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { I18nProviderClient, useI18n, useCurrentLocale } from "../../locales/client";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 // 表单数据类型定义
 type FormData = {
@@ -11,7 +13,10 @@ type FormData = {
   // 可以根据需要添加 outputFormat, outputQuality 等高级选项
 };
 
-export default function Home() {
+// 包装实际的页面内容，以便在 I18nProviderClient 内部使用 i18n hooks
+function HomePageContent() {
+  const t = useI18n();
+
   // 状态管理 (从 generate/page.tsx 移入)
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -68,34 +73,36 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-sky-100 dark:from-slate-800 dark:via-gray-900 dark:to-sky-900/50 text-gray-900 dark:text-gray-100">
       {/* 导航栏 */}
-      <header className="w-full py-3 sm:py-4 px-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-10 shadow-sm">
+      <header className="w-full py-3 sm:py-4 px-4 sm:px-6 border-b border-gray-200/70 dark:border-gray-700/70 sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-10 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
               <span className="text-white font-bold text-lg">F</span>
             </div>
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Flux-Schnell</h1>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {t('siteTitle', { count: 1 })}
+            </h1>
           </Link>
-          {/* 导航栏右侧可以留空或添加其他链接 */}
+          <LanguageSwitcher />
         </div>
       </header>
 
       {/* 主要内容 - Hero 区集成文生图 */}
       <main className="flex-grow w-full">
-        {/* Hero 区添加渐变背景 */}
-        <section className="py-10 sm:py-12 px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-gray-100 to-sky-100 dark:from-slate-800 dark:via-gray-900 dark:to-sky-900/50">
+        {/* Hero 区，移除渐变背景类 */}
+        <section className="py-10 sm:py-12 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 sm:mb-10">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-gray-800 dark:text-white">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-                  即刻生成
+                  {t('heroTitle', { count: 1 }).split(' ')[0]}
                 </span>
-                您的 AI 创意图像
+                {t('heroTitle', { count: 1 }).substring(t('heroTitle', { count: 1 }).indexOf(' ') + 1)}
               </h2>
               <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                输入您的灵感描述，选择参数，Flux-Schnell 将为您快速生成高质量图像。
+                {t('heroSubtitle', { count: 1 })}
               </p>
             </div>
 
@@ -106,14 +113,14 @@ export default function Home() {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div>
                     <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
-                      图像描述 <span className="text-red-500">*</span>
+                      {t('promptLabel', { count: 1 })} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="prompt"
                       rows={4}
                       className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
-                      placeholder="例如：一只戴着宇航员头盔的可爱猫咪，漂浮在五彩斑斓的星云太空中，超高清细节"
-                      {...register("prompt", { required: "图像描述不能为空" })}
+                      placeholder={t('promptPlaceholder', { count: 1 })}
+                      {...register("prompt", { required: t('promptRequiredError', { count: 1 }) })}
                     />
                     {errors.prompt && (
                       <p className="text-red-500 text-xs mt-1">{errors.prompt.message}</p>
@@ -123,20 +130,20 @@ export default function Home() {
                   <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
                     <div>
                       <label htmlFor="aspectRatio" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
-                        宽高比
+                        {t('aspectRatioLabel', { count: 1 })}
                       </label>
                       <select
                         id="aspectRatio"
                         className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
                         {...register("aspectRatio")}
                       >
-                        <option value="1:1">正方形 (1:1)</option>
-                        <option value="16:9">宽屏 (16:9)</option>
-                        <option value="9:16">竖屏 (9:16)</option>
-                        <option value="4:3">标准 (4:3)</option>
-                        <option value="3:4">标准竖屏 (3:4)</option>
-                        <option value="3:2">照片 (3:2)</option>
-                        <option value="2:3">照片竖屏 (2:3)</option>
+                        <option value="1:1">{t('aspectRatios.square', { count: 1 })}</option>
+                        <option value="16:9">{t('aspectRatios.widescreen', { count: 1 })}</option>
+                        <option value="9:16">{t('aspectRatios.portrait', { count: 1 })}</option>
+                        <option value="4:3">{t('aspectRatios.standard', { count: 1 })}</option>
+                        <option value="3:4">{t('aspectRatios.standardPortrait', { count: 1 })}</option>
+                        <option value="3:2">{t('aspectRatios.photo', { count: 1 })}</option>
+                        <option value="2:3">{t('aspectRatios.photoPortrait', { count: 1 })}</option>
                       </select>
                     </div>
                   </div>
@@ -152,10 +159,10 @@ export default function Home() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        正在生成...
+                        {t('generatingButton', { count: 1 })}
                       </>
                     ) : (
-                      "✨ 生成图像"
+                      t('generateButton', { count: 1 })
                     )}
                   </button>
                 </form>
@@ -171,7 +178,7 @@ export default function Home() {
                           <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">图像生成中，请稍候...</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">{t('loadingMessage', { count: 1 })}</p>
                     </div>
                   )}
 
@@ -182,7 +189,7 @@ export default function Home() {
                         <line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                       </svg>
-                      <p className="text-red-600 dark:text-red-300 text-sm font-medium">生成失败</p>
+                      <p className="text-red-600 dark:text-red-300 text-sm font-medium">{t('errorTitle', { count: 1 })}</p>
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1 break-words">{error}</p>
                     </div>
                   )}
@@ -193,7 +200,7 @@ export default function Home() {
                         <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                         <circle cx="12" cy="13" r="3" />
                       </svg>
-                      <p className="text-xs sm:text-sm">在此预览您生成的图像</p>
+                      <p className="text-xs sm:text-sm">{t('previewAreaPlaceholder', { count: 1 })}</p>
                     </div>
                   )}
 
@@ -217,8 +224,8 @@ export default function Home() {
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                           </svg>
-          </a>
-        </div>
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -229,17 +236,19 @@ export default function Home() {
       </main>
 
       {/* 页脚 */}
-      <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-gray-200 dark:border-gray-700 mt-10 sm:mt-12 bg-white dark:bg-gray-800">
+      <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-gray-200/70 dark:border-gray-700/70 mt-10 sm:mt-12">
         <div className="max-w-7xl mx-auto text-center sm:flex sm:justify-between sm:items-center">
           <div className="mb-3 sm:mb-0">
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Ma Yin. 版权所有。</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {t('footerCopyright', { year: new Date().getFullYear(), count: 1 })}
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
-            <a href="mailto:mayin711@gmail.com" className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-              联系我: mayin711@gmail.com
+            <a href="mailto:mayin711@gmail.com" className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              {t('footerContact', { count: 1 })}
             </a>
             {/* 您可以在这里添加 GitHub 链接等 */}
-            {/* <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+            {/* <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
               GitHub
             </Link> */}
           </div>
@@ -257,3 +266,24 @@ export default function Home() {
     </div>
   );
 }
+
+// 默认导出的 Home 组件现在包裹 HomePageContent 并提供 I18nProviderClient
+export default function Home() {
+  // Since page.tsx is "use client", we can use client hooks here.
+  const currentLocale = useCurrentLocale(); // Get locale using the client hook
+
+  if (!currentLocale) {
+    // Fallback or loading state if locale is not yet available
+    // This might happen briefly during initial load or if context is not ready
+    return <div className="w-screen h-screen flex items-center justify-center"><p>Loading locale...</p></div>;
+  }
+
+  return (
+    <I18nProviderClient 
+      locale={currentLocale} 
+      fallback={<div className="w-screen h-screen flex items-center justify-center"><p>Loading translations...</p></div>}
+    >
+      <HomePageContent />
+    </I18nProviderClient>
+  );
+} 

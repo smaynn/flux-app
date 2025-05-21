@@ -1,0 +1,1 @@
+export { getCurrentLocale, getI18n, getScopedI18n } from './index'; 
