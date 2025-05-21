@@ -1,0 +1,259 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useForm, SubmitHandler } from "react-hook-form";
+
+// 表单数据类型定义
+type FormData = {
+  prompt: string;
+  aspectRatio: string;
+  // 可以根据需要添加 outputFormat, outputQuality 等高级选项
+};
+
+export default function Home() {
+  // 状态管理 (从 generate/page.tsx 移入)
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // 表单处理 (从 generate/page.tsx 移入)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    defaultValues: {
+      prompt: "",
+      aspectRatio: "1:1",
+    },
+  });
+
+  // 生成图像逻辑 (从 generate/page.tsx 移入)
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    setIsGenerating(true);
+    setError(null);
+    setGeneratedImage(null);
+
+    console.log("首页发送的数据 (onSubmit data):", data);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || `图像生成失败，状态码: ${response.status}`);
+      }
+
+      if (result.imageUrl && typeof result.imageUrl === "string") {
+        setGeneratedImage(result.imageUrl);
+      } else {
+        console.error("服务器成功响应但未返回有效的imageUrl:", result);
+        throw new Error("服务器成功响应，但未提供有效的图像数据。请检查API日志。");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "生成过程中发生未知错误";
+      setError(errorMessage);
+      console.error("生成错误 (onSubmit catch):", errorMessage, err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* 导航栏 */}
+      <header className="w-full py-3 sm:py-4 px-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+              <span className="text-white font-bold text-lg">F</span>
+            </div>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Flux-Schnell</h1>
+          </Link>
+          {/* 导航栏右侧可以留空或添加其他链接 */}
+        </div>
+      </header>
+
+      {/* 主要内容 - Hero 区集成文生图 */}
+      <main className="flex-grow w-full">
+        {/* Hero 区添加渐变背景 */}
+        <section className="py-10 sm:py-12 px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-gray-100 to-sky-100 dark:from-slate-800 dark:via-gray-900 dark:to-sky-900/50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-gray-800 dark:text-white">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+                  即刻生成
+                </span>
+                您的 AI 创意图像
+              </h2>
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                输入您的灵感描述，选择参数，Flux-Schnell 将为您快速生成高质量图像。
+              </p>
+            </div>
+
+            {/* 父级网格使用 items-stretch 使子项等高 */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 items-stretch">
+              {/* 左侧/主要：图像生成表单 (占3/5宽度) */}
+              <div className="lg:col-span-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 sm:p-6 shadow-lg">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                  <div>
+                    <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
+                      图像描述 <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      id="prompt"
+                      rows={4}
+                      className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
+                      placeholder="例如：一只戴着宇航员头盔的可爱猫咪，漂浮在五彩斑斓的星云太空中，超高清细节"
+                      {...register("prompt", { required: "图像描述不能为空" })}
+                    />
+                    {errors.prompt && (
+                      <p className="text-red-500 text-xs mt-1">{errors.prompt.message}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+                    <div>
+                      <label htmlFor="aspectRatio" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
+                        宽高比
+                      </label>
+                      <select
+                        id="aspectRatio"
+                        className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
+                        {...register("aspectRatio")}
+                      >
+                        <option value="1:1">正方形 (1:1)</option>
+                        <option value="16:9">宽屏 (16:9)</option>
+                        <option value="9:16">竖屏 (9:16)</option>
+                        <option value="4:3">标准 (4:3)</option>
+                        <option value="3:4">标准竖屏 (3:4)</option>
+                        <option value="3:2">照片 (3:2)</option>
+                        <option value="2:3">照片竖屏 (2:3)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isGenerating}
+                    className="w-full btn-hover-effect py-2.5 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center justify-center shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        正在生成...
+                      </>
+                    ) : (
+                      "✨ 生成图像"
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* 右侧/次要：图像预览区域 (占2/5宽度) */}
+              <div className="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 sm:p-4 shadow-lg flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px]">
+                <div className="w-full h-full flex items-center justify-center aspect-[4/3] lg:aspect-auto">
+                  {isGenerating && (
+                    <div className="text-center p-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <svg className="animate-spin text-blue-500 dark:text-blue-400 h-5 w-5 sm:h-6 sm:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
+                        </svg>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">图像生成中，请稍候...</p>
+                    </div>
+                  )}
+
+                  {error && !isGenerating && (
+                    <div className="text-center p-3 sm:p-4 bg-red-50 dark:bg-red-900/30 rounded-lg w-full max-w-sm mx-auto">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 mx-auto mb-1.5 sm:mb-2 h-6 w-6 sm:h-8 sm:w-8">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      <p className="text-red-600 dark:text-red-300 text-sm font-medium">生成失败</p>
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1 break-words">{error}</p>
+                    </div>
+                  )}
+
+                  {!isGenerating && !error && !generatedImage && (
+                    <div className="text-center text-gray-400 dark:text-gray-500 p-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 sm:mb-3">
+                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                        <circle cx="12" cy="13" r="3" />
+                      </svg>
+                      <p className="text-xs sm:text-sm">在此预览您生成的图像</p>
+                    </div>
+                  )}
+
+                  {generatedImage && !isGenerating && !error && (
+                    <div className="w-full h-full relative group flex items-center justify-center">
+                      <img 
+                        src={generatedImage} 
+                        alt="AI 生成的图像" 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-md transition-opacity duration-300 ease-in-out animate-fadeIn"
+                        onLoad={() => console.log("图像已成功加载到img标签")}
+                      />
+                      <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <a 
+                          href={generatedImage} 
+                          download={`flux_image_${Date.now()}.webp`}
+                          className="p-2 sm:p-2.5 bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/90 dark:hover:bg-gray-600/90 transition-colors text-gray-700 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-400"
+                          title="下载图像"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+          </a>
+        </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* 页脚 */}
+      <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-gray-200 dark:border-gray-700 mt-10 sm:mt-12 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto text-center sm:flex sm:justify-between sm:items-center">
+          <div className="mb-3 sm:mb-0">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Ma Yin. 版权所有。</p>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
+            <a href="mailto:mayin711@gmail.com" className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              联系我: mayin711@gmail.com
+            </a>
+            {/* 您可以在这里添加 GitHub 链接等 */}
+            {/* <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              GitHub
+            </Link> */}
+          </div>
+        </div>
+      </footer>
+      <style jsx global>{`
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
