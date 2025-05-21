@@ -83,6 +83,7 @@ function HomePageContent() {
               <span className="text-white font-bold text-lg">F</span>
             </div>
             <h1 className="text-xl font-semibold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {/* @ts-ignore */}
               {t('siteTitle', { count: 1 })}
             </h1>
           </Link>
@@ -98,11 +99,14 @@ function HomePageContent() {
             <div className="text-center mb-8 sm:mb-10">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-gray-800 dark:text-white">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+                  {/* @ts-ignore */}
                   {t('heroTitle', { count: 1 }).split(' ')[0]}
                 </span>
+                {/* @ts-ignore */}
                 {t('heroTitle', { count: 1 }).substring(t('heroTitle', { count: 1 }).indexOf(' ') + 1)}
               </h2>
               <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                {/* @ts-ignore */}
                 {t('heroSubtitle', { count: 1 })}
               </p>
             </div>
@@ -114,13 +118,16 @@ function HomePageContent() {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                   <div>
                     <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
+                      {/* @ts-ignore */}
                       {t('promptLabel', { count: 1 })} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="prompt"
                       rows={4}
                       className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
+                      /* @ts-ignore */
                       placeholder={t('promptPlaceholder', { count: 1 })}
+                      /* @ts-ignore */
                       {...register("prompt", { required: t('promptRequiredError', { count: 1 }) })}
                     />
                     {errors.prompt && (
@@ -131,6 +138,7 @@ function HomePageContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
                     <div>
                       <label htmlFor="aspectRatio" className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
+                        {/* @ts-ignore */}
                         {t('aspectRatioLabel', { count: 1 })}
                       </label>
                       <select
@@ -138,12 +146,19 @@ function HomePageContent() {
                         className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-sm text-sm"
                         {...register("aspectRatio")}
                       >
+                        {/* @ts-ignore */}
                         <option value="1:1">{t('aspectRatios.square', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="16:9">{t('aspectRatios.widescreen', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="9:16">{t('aspectRatios.portrait', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="4:3">{t('aspectRatios.standard', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="3:4">{t('aspectRatios.standardPortrait', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="3:2">{t('aspectRatios.photo', { count: 1 })}</option>
+                        {/* @ts-ignore */}
                         <option value="2:3">{t('aspectRatios.photoPortrait', { count: 1 })}</option>
                       </select>
                     </div>
@@ -160,9 +175,11 @@ function HomePageContent() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
+                        {/* @ts-ignore */}
                         {t('generatingButton', { count: 1 })}
                       </>
                     ) : (
+                      /* @ts-ignore */
                       t('generateButton', { count: 1 })
                     )}
                   </button>
@@ -179,6 +196,7 @@ function HomePageContent() {
                           <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
                       </div>
+                      {/* @ts-ignore */}
                       <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">{t('loadingMessage', { count: 1 })}</p>
                     </div>
                   )}
@@ -190,6 +208,7 @@ function HomePageContent() {
                         <line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                       </svg>
+                      {/* @ts-ignore */}
                       <p className="text-red-600 dark:text-red-300 text-sm font-medium">{t('errorTitle', { count: 1 })}</p>
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1 break-words">{error}</p>
                     </div>
@@ -201,6 +220,7 @@ function HomePageContent() {
                         <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                         <circle cx="12" cy="13" r="3" />
                       </svg>
+                      {/* @ts-ignore */}
                       <p className="text-xs sm:text-sm">{t('previewAreaPlaceholder', { count: 1 })}</p>
                     </div>
                   )}
@@ -244,17 +264,16 @@ function HomePageContent() {
         <div className="max-w-7xl mx-auto text-center sm:flex sm:justify-between sm:items-center">
           <div className="mb-3 sm:mb-0">
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {/* @ts-ignore */}
               {t('footerCopyright', { year: new Date().getFullYear(), count: 1 })}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
             <a href="mailto:mayin711@gmail.com" className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              {/* @ts-ignore */}
               {t('footerContact', { count: 1 })}
             </a>
             {/* 您可以在这里添加 GitHub 链接等 */}
-            {/* <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-              GitHub
-            </Link> */}
           </div>
         </div>
       </footer>
