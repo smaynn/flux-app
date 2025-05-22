@@ -22,6 +22,7 @@ interface ModelInput {
 interface RequestBody {
   prompt: string;
   aspectRatio: string;
+  hCaptchaToken: string;
 }
 
 // 定义 Replicate 错误对象的接口
@@ -40,6 +41,51 @@ interface ReplicatePrediction {
   error?: ReplicateError | string | null; // 错误信息可以是对象或字符串
   logs?: string;
   metrics?: { predict_time?: number; [key: string]: string | number | boolean | null | undefined }; // metrics可以包含predict_time等，以及其他键值对
+}
+
+// 定义 hCaptcha 验证响应的接口
+interface HCaptchaVerifyResponse {
+  success: boolean;
+  challenge_ts?: string;
+  hostname?: string;
+  credit?: boolean;
+  "error-codes"?: string[];
+}
+
+// hCaptcha验证函数
+async function verifyCaptcha(token: string): Promise<boolean> {
+  try {
+    const secretKey = process.env.HCAPTCHA_SECRET_KEY;
+
+    if (!secretKey) {
+      console.error("hCaptcha密钥未配置");
+      return false;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append("response", token);
+    formData.append("secret", secretKey);
+    
+    const response = await fetch("https://api.hcaptcha.com/siteverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    const data: HCaptchaVerifyResponse = await response.json();
+    
+    if (data.success) {
+      return true;
+    } else {
+      console.error("hCaptcha验证失败:", data["error-codes"]);
+      return false;
+    }
+  } catch (error) {
+    console.error("hCaptcha验证过程中发生错误:", error);
+    return false;
+  }
 }
 
 // 辅助函数：轮询预测状态直到完成或失败
@@ -68,7 +114,17 @@ async function pollPrediction(predictionId: string): Promise<ReplicatePrediction
 // 验证前端输入并准备模型输入的函数
 async function validateAndProcessInput(req: NextRequest): Promise<ModelInput> {
   const body: RequestBody = await req.json();
-  const { prompt, aspectRatio } = body;
+  const { prompt, aspectRatio, hCaptchaToken } = body;
+
+  // 验证hCaptcha token
+  if (!hCaptchaToken || typeof hCaptchaToken !== "string") {
+    return Promise.reject(new Error("人机验证失败，请重试。"));
+  }
+  
+  const isHCaptchaValid = await verifyCaptcha(hCaptchaToken);
+  if (!isHCaptchaValid) {
+    return Promise.reject(new Error("人机验证失败，请重试。"));
+  }
 
   if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
     return Promise.reject(new Error("Prompt is required and must be a non-empty string."));

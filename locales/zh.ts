@@ -24,4 +24,7 @@ export default {
   switchToChinese: '切换到中文',
   switchToEnglish: 'Switch to English',
   promptRequiredError: '图像描述不能为空',
+  hCaptchaLabel: '人机验证',
+  hCaptchaRequiredError: '请完成人机验证',
+  hCaptchaInvalidError: '人机验证失败，请重试',
 } as const; 

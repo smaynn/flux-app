@@ -11,6 +11,7 @@
 - **Tailwind CSS**: 用于快速构建响应式UI
 - **Replicate API**: 用于文本到图像的生成
 - **React Hook Form**: 用于表单处理和验证
+- **hCaptcha**: 用于防止API滥用的人机验证
 
 ## 页面结构
 
@@ -22,11 +23,13 @@
 2. **生成页面 (/generate)**:
    - 文本输入区域，用于描述想要生成的图像
    - 可选参数设置（如图像尺寸、风格等）
+   - hCaptcha人机验证
    - 生成按钮
    - 生成历史记录展示区域
 
 3. **API路由 (/api/generate)**:
    - 处理生成请求
+   - 验证hCaptcha响应
    - 与Replicate API交互
    - 返回生成的图像URL
 
@@ -36,6 +39,7 @@
 
 - API密钥存储在环境变量中，不会暴露在前端代码中
 - 所有API请求通过服务端API路由进行，避免在客户端直接调用第三方服务
+- 人机验证系统防止API滥用
 - 不会在客户端存储敏感信息
 
 ## 本地开发
@@ -44,8 +48,10 @@
 # 安装依赖
 npm install
 
-# 创建.env.local文件并添加您的Replicate API密钥
+# 创建.env.local文件并添加您的密钥
 # REPLICATE_API_KEY=your_api_key_here
+# NEXT_PUBLIC_HCAPTCHA_SITE_KEY=your_site_key_here
+# HCAPTCHA_SECRET_KEY=your_secret_key_here
 
 # 运行开发服务器
 npm run dev
@@ -59,6 +65,8 @@ npm run dev
 2. 在Vercel上创建一个新项目，并连接到您的GitHub仓库
 3. 在Vercel项目设置中添加环境变量：
    - `REPLICATE_API_KEY`: 您的Replicate API密钥
+   - `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`: 您的hCaptcha站点密钥
+   - `HCAPTCHA_SECRET_KEY`: 您的hCaptcha密钥
 4. 部署项目
 
 ## 注意事项
@@ -66,6 +74,7 @@ npm run dev
 - 本项目仅作为MVP演示使用，不建议用于生产环境
 - 请遵守Replicate的使用条款和限制
 - 生成的图像可能受版权保护，请谨慎使用
+- 如需详细了解hCaptcha设置，请参考项目根目录的`hcaptcha-setup.md`文件
 
 ## 后续改进方向
 

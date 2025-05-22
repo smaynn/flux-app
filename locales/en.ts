@@ -24,4 +24,7 @@ export default {
   switchToChinese: '切换到中文',
   switchToEnglish: 'Switch to English',
   promptRequiredError: 'Image description cannot be empty',
+  hCaptchaLabel: 'Human Verification',
+  hCaptchaRequiredError: 'Please complete the verification',
+  hCaptchaInvalidError: 'Verification failed, please try again',
 } as const; 

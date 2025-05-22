@@ -1,39 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { I18nProviderClient, useI18n, useCurrentLocale } from "../../locales/client";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 // 表单数据类型定义
 type FormData = {
   prompt: string;
   aspectRatio: string;
+  hCaptchaToken: string;
   // 可以根据需要添加 outputFormat, outputQuality 等高级选项
 };
 
 // 包装实际的页面内容，以便在 I18nProviderClient 内部使用 i18n hooks
 function HomePageContent() {
   const t = useI18n();
+  const captchaRef = useRef<HCaptcha>(null);
 
   // 状态管理 (从 generate/page.tsx 移入)
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // 表单处理 (从 generate/page.tsx 移入)
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
       prompt: "",
       aspectRatio: "1:1",
+      hCaptchaToken: "",
     },
   });
+
+  // hCaptcha 验证处理
+  const onCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
+    setValue("hCaptchaToken", token);
+  };
+
+  const onCaptchaExpire = () => {
+    setCaptchaToken(null);
+    setValue("hCaptchaToken", "");
+  };
+
+  const onCaptchaError = (event: string) => {
+    console.error("hCaptcha 错误:", event);
+    setCaptchaToken(null);
+    setValue("hCaptchaToken", "");
+  };
 
   // 生成图像逻辑 (从 generate/page.tsx 移入)
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -70,6 +93,12 @@ function HomePageContent() {
       console.error("生成错误 (onSubmit catch):", errorMessage, err);
     } finally {
       setIsGenerating(false);
+      // 重置验证码
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+      }
+      setCaptchaToken(null);
+      setValue("hCaptchaToken", "");
     }
   };
 
@@ -163,10 +192,36 @@ function HomePageContent() {
                       </select>
                     </div>
                   </div>
+                  
+                  {/* hCaptcha组件 */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-200">
+                      {/* @ts-ignore */}
+                      {t('hCaptchaLabel', { count: 1 })} <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex justify-center">
+                      <HCaptcha
+                        ref={captchaRef}
+                        sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001"}
+                        onVerify={onCaptchaVerify}
+                        onExpire={onCaptchaExpire}
+                        onError={onCaptchaError}
+                      />
+                    </div>
+                    <input 
+                      type="hidden" 
+                      {...register("hCaptchaToken", {
+                        required: "请完成人机验证"
+                      })}
+                    />
+                    {errors.hCaptchaToken && (
+                      <p className="text-red-500 text-xs mt-1 text-center">{errors.hCaptchaToken.message}</p>
+                    )}
+                  </div>
 
                   <button
                     type="submit"
-                    disabled={isGenerating}
+                    disabled={isGenerating || !captchaToken}
                     className="w-full btn-hover-effect py-2.5 px-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center justify-center shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isGenerating ? (
