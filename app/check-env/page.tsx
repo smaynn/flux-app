@@ -26,7 +26,7 @@ export default function CheckEnv() {
     });
 
     // 从API获取服务器端环境变量信息
-    fetch("/api/debug")
+    fetch("/api/debug?key=flux_debug_access")
       .then((res) => res.json())
       .then((data) => {
         setDebugInfo(data.debugInfo);
