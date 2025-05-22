@@ -199,14 +199,21 @@ function HomePageContent() {
                       {/* @ts-ignore */}
                       {t('hCaptchaLabel', { count: 1 })} <span className="text-red-500">*</span>
                     </label>
-                    <div className="flex justify-center">
-                      <HCaptcha
-                        ref={captchaRef}
-                        sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || "10000000-ffff-ffff-ffff-000000000001"}
-                        onVerify={onCaptchaVerify}
-                        onExpire={onCaptchaExpire}
-                        onError={onCaptchaError}
-                      />
+                    <div className="flex flex-col items-center">
+                      {/* 添加站点密钥可见性检查 */}
+                      {process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ? (
+                        <HCaptcha
+                          ref={captchaRef}
+                          sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY}
+                          onVerify={onCaptchaVerify}
+                          onExpire={onCaptchaExpire}
+                          onError={onCaptchaError}
+                        />
+                      ) : (
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-md text-sm text-yellow-700 dark:text-yellow-300">
+                          请设置 NEXT_PUBLIC_HCAPTCHA_SITE_KEY 环境变量
+                        </div>
+                      )}
                     </div>
                     <input 
                       type="hidden" 
@@ -216,6 +223,16 @@ function HomePageContent() {
                     />
                     {errors.hCaptchaToken && (
                       <p className="text-red-500 text-xs mt-1 text-center">{errors.hCaptchaToken.message}</p>
+                    )}
+                    
+                    {/* 调试信息，仅在开发环境显示 */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="mt-2 p-2 border border-gray-200 dark:border-gray-700 rounded text-xs">
+                        <p>调试信息: </p>
+                        <p>站点密钥存在: {process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ? '是' : '否'}</p>
+                        <p>环境: {process.env.NODE_ENV}</p>
+                        <p>验证状态: {captchaToken ? '已验证' : '未验证'}</p>
+                      </div>
                     )}
                   </div>
 
